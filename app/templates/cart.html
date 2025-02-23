@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Кошик{% endblock %}
+
+{% block content %}
+<div class="cart-container">
+    <h1>Кошик</h1>
+    
+    {% if cart_items %}
+        <div class="cart-items">
+            {% for item in cart_items %}
+            <div class="cart-item">
+                <h3>{{ item.name }}</h3>
+                <p>Ціна: {{ item.price }} грн</p>
+                <form method="POST" action="/cart/update/{{ item.product_id }}" class="quantity-form">
+                    <label for="quantity">Кількість:</label>
+                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1">
+                    <button type="submit" class="btn-secondary">Оновити</button>
+                </form>
+                <p>Сума: {{ item.price * item.quantity }} грн</p>
+                <form method="POST" action="/cart/remove/{{ item.product_id }}">
+                    <button type="submit" class="btn-danger">Видалити</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="cart-summary">
+            <h3>Загальна сума: {{ total }} грн</h3>
+            <form method="POST" action="/orders/create">
+                <button type="submit" class="btn-primary">Оформити замовлення</button>
+            </form>
+        </div>
+    {% else %}
+        <p>Ваш кошик порожній</p>
+    {% endif %}
+</div>
+{% endblock %} 

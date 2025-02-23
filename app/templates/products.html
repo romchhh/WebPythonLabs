@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Продукти{% endblock %}
+
+{% block content %}
+<div class="products-container">
+    <h1>Наші продукти</h1>
+    
+    {% if is_admin %}
+    <div class="admin-controls">
+        <button onclick="location.href='/products/new'" class="btn-primary">
+            Додати новий продукт
+        </button>
+    </div>
+    {% endif %}
+
+    <div class="products-grid">
+        {% for product in products %}
+        <div class="product-card">
+            <h2>{{ product.name }}</h2>
+            <p class="description">{{ product.description }}</p>
+            <p class="price">{{ product.price }} грн</p>
+            <p class="stock">В наявності: {{ product.stock }}</p>
+            
+            {% if is_admin %}
+            <div class="admin-actions">
+                <button onclick="location.href='/products/{{ product.id }}/edit'" class="btn-secondary">
+                    Редагувати
+                </button>
+                <form method="POST" action="/products/{{ product.id }}/delete" style="display: inline;">
+                    <button type="submit" class="btn-danger">Видалити</button>
+                </form>
+            </div>
+            {% else %}
+            <form method="POST" action="/cart/add/{{ product.id }}">
+                <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" required>
+                <button type="submit" class="btn-primary">Додати в кошик</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

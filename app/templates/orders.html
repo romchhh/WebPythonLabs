@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Замовлення{% endblock %}
+
+{% block content %}
+<div class="orders-container">
+    <h1>{% if user.is_admin %}Всі замовлення{% else %}Мої замовлення{% endif %}</h1>
+    
+    {% if orders %}
+        {% for order in orders %}
+        <div class="order-card">
+            <h3>Замовлення #{{ order.id }}</h3>
+            <p>Статус: {{ order.status }}</p>
+            <div class="order-items">
+                {% for item in order.items %}
+                <div class="order-item">
+                    <p>{{ item.product.name }} - {{ item.quantity }} шт.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>Замовлень немає</p>
+    {% endif %}
+</div>
+{% endblock %} 
