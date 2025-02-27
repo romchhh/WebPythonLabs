@@ -7,56 +7,70 @@
 }
 
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Inter', sans-serif;
     line-height: 1.6;
-    color: #333;
+    color: var(--text-color);
+    background: var(--light-bg);
 }
 
 
 /* Навігація */
 
 header {
-    background-color: var(--header-bg);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 1rem 0;
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 2rem;
 }
 
 .logo a {
-    color: var(--header-text);
-    font-size: 2rem;
-    font-weight: bold;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
     text-decoration: none;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .nav-links {
     display: flex;
-    gap: 1.5rem;
-    align-items: center;
+    gap: 2rem;
     list-style: none;
 }
 
 .nav-links a {
-    color: var(--header-text);
     text-decoration: none;
-    font-size: 1.2rem;
+    color: var(--text-color);
     font-weight: 500;
-    padding: 0.8rem 1.5rem;
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    transition: color 0.3s ease;
+    position: relative;
 }
 
-.nav-links a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -4px;
+    left: 0;
+    background: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after {
+    width: 100%;
 }
 
 
@@ -73,22 +87,45 @@ main {
 
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 2.5rem;
-    padding: 2.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .product-card {
     background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .product-card:hover {
     transform: translateY(-10px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.product-image {
+    height: 200px;
+    overflow: hidden;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.1);
+}
+
+.product-content {
+    padding: 1.5rem;
 }
 
 .product-card h2 {
@@ -128,14 +165,13 @@ main {
 }
 
 .btn-primary {
-    background-color: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: var(--hover-color);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 15px rgba(79, 70, 229, 0.4);
 }
 
 .btn-secondary {
@@ -163,12 +199,14 @@ main {
 
 /* Форми авторизації */
 
-.auth-container {
-    max-width: 400px;
+.auth-container,
+.form-container {
+    max-width: 500px;
     margin: 2rem auto;
     padding: 2rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
 }
 
 .auth-form .form-group {
@@ -182,9 +220,15 @@ main {
 
 .auth-form input {
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    transition: border-color 0.3s ease;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: var(--primary-color);
 }
 
 .auth-links {
@@ -205,22 +249,14 @@ footer {
     width: 100%;
 }
 
-.form-container {
-    max-width: 600px;
-    margin: 2rem auto;
-    padding: 2rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-}
-
 .form-group {
     margin-bottom: 1.5rem;
 }
 
 .form-group label {
-    font-size: 1.2rem;
-    margin-bottom: 0.8rem;
     display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
     color: var(--text-color);
 }
 
@@ -252,9 +288,14 @@ footer {
 }
 
 .cart-item {
-    padding: 2rem;
-    margin-bottom: 1.5rem;
-    border-radius: 12px;
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .cart-item h3 {
@@ -288,10 +329,11 @@ footer {
 }
 
 .order-card {
-    border: 1px solid #ddd;
-    padding: 1rem;
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
     margin-bottom: 1rem;
-    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
 }
 
 .order-items {
@@ -307,12 +349,14 @@ footer {
 /* Сучасні змінні кольорів */
 
 :root {
-    --primary-color: #4a90e2;
-    --secondary-color: #50b83c;
+    --primary-color: #4f46e5;
+    --primary-dark: #4338ca;
+    --secondary-color: #0ea5e9;
+    --text-color: #1f2937;
+    --light-bg: #f8fafc;
+    --border-color: #e2e8f0;
     --danger-color: #e74c3c;
     --background-color: #f5f7fa;
-    --text-color: #2c3e50;
-    --border-color: #e1e8ed;
     --hover-color: #357abd;
     --header-bg: #2c3e50;
     --header-text: #ffffff;
@@ -426,26 +470,22 @@ body {
 /* Адаптивність */
 
 @media (max-width: 768px) {
-    .nav-links {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
+    nav {
         flex-direction: column;
-        background-color: var(--header-bg);
-        padding: 1rem;
-        display: none;
+        gap: 1rem;
     }
-    .nav-links.active {
-        display: flex;
-    }
-    .nav-links a {
-        width: 100%;
+    .nav-links {
+        flex-direction: column;
+        gap: 1rem;
         text-align: center;
     }
     .products-grid {
         grid-template-columns: 1fr;
-        padding: 1rem;
+    }
+    .cart-item {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
     }
     .stat-card {
         margin-bottom: 1rem;
@@ -474,4 +514,24 @@ body {
 .stat-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Анімації */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.product-card,
+.cart-item,
+.order-card {
+    animation: fadeIn 0.5s ease forwards;
 }
