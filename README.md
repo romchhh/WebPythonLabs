@@ -1,223 +1,285 @@
-# Лабораторна робота: Покращення онлайн-магазину ShopUA
+# Лабораторна робота №4: Розробка E-commerce веб-додатку на Django
 
-## Опис проекту
-Проект представляє собою онлайн-магазин з розширеною функціональністю та покращеним користувацьким інтерфейсом. У ході виконання лабораторної роботи було внесено ряд суттєвих покращень для підвищення зручності користування та естетичного вигляду магазину.
+## Мета роботи
+Розробити веб-додаток інтернет-магазину з використанням фреймворку Django, реалізувати основні функції e-commerce платформи та створити сучасний адаптивний інтерфейс.
 
-## Основні покращення
+## Використані технології та інструменти
+- Python 3.11
+- Django 4.2
+- Bootstrap 5
+- SQLite
+- Pillow для обробки зображень
+- HTML/CSS/JavaScript
 
-### 1. Оновлення системи пошуку
-- Реалізовано повнотекстовий пошук по товарах з використанням регулярних виразів
-- Пошук здійснюється за трьома параметрами:
-  - Назва товару
-  - Опис товару
-  - Категорія
-- Додано інформативне відображення результатів пошуку з кількістю знайдених товарів
+## Хід роботи
 
-### 2. Покращення відображення товарів
-- Додано підтримку зображень товарів через URL
-- Реалізовано плейсхолдер для товарів без зображень
-- Додано ефекти наведення для карток товарів
-- Оптимізовано завантаження зображень з використанням атрибуту `loading="lazy"`
+### 1. Налаштування проекту
 
-### 3. Категорії товарів
-- Створено зручну навігацію по категоріях
-- Додано іконки для кожної категорії
-- Реалізовано горизонтальний скролінг категорій
-- Додано візуальне виділення активної категорії
+#### 1.1. Створення віртуального середовища та встановлення залежностей
+```bash
+# Створення віртуального середовища
+python -m venv venv
+source venv/bin/activate  # для Linux/Mac
 
-### 4. Інтерфейс користувача
-- Покращено дизайн форми пошуку
-- Додано анімації та ефекти для інтерактивних елементів
-- Реалізовано адаптивний дизайн
-- Додано скелетон-завантаження для товарів
+# Встановлення необхідних пакетів
+pip install django pillow
+pip freeze > requirements.txt
+```
 
-### 5. Адміністративні функції
-- Покращено інтерфейс додавання/редагування товарів
-- Додано підтримку URL зображень при створенні та редагуванні товарів
-- Реалізовано підтвердження видалення товарів
+#### 1.2. Створення проекту та додатку
+```bash
+# Створення проекту Django
+django-admin startproject myshop
+cd myshop
 
-## Технічні деталі реалізації
+# Створення додатку shop
+python manage.py startapp shop
+```
 
-### Структура бази даних
-- Використано MongoDB для зберігання даних
-- Модель товару включає наступні поля:
-  - name: назва товару
-  - description: опис
-  - price: ціна
-  - stock: кількість на складі
-  - category: категорія
-  - image_url: посилання на зображення
-
-### Серверна частина
-- Використано FastAPI для створення API
-- Реалізовано CRUD операції для товарів
-- Додано валідацію даних через Pydantic моделі
-- Оптимізовано пошукові запити
-
-### Клієнтська частина
-- Використано Jinja2 для шаблонізації
-- Реалізовано JavaScript функціонал для інтерактивності
-- Оптимізовано CSS стилі для кращої продуктивності
-- Додано адаптивні стилі для різних розмірів екрану
-
-## Використані технології
-- Python 3.8+
-- FastAPI
-- MongoDB
-- Motor (асинхронний драйвер MongoDB)
-- Jinja2
-- HTML5/CSS3
-- JavaScript
-- SVG іконки
-
-## Перехід на MongoDB
-
-### Чому MongoDB?
-MongoDB - це документоорієнтована база даних, яка має ряд переваг для веб-додатків:
-1. **Гнучка схема даних**: MongoDB дозволяє зберігати документи з різною структурою в одній колекції
-2. **Масштабованість**: Легко горизонтально масштабується для обробки великих обсягів даних
-3. **Швидкість**: Оптимізована для швидкого читання та запису даних
-4. **JSON-подібний формат**: Природня інтеграція з веб-додатками
-5. **Підтримка індексів**: Можливість створення різних типів індексів для оптимізації запитів
-
-### Приклади реалізації
-
-#### 1. Підключення до MongoDB
+#### 1.3. Налаштування settings.py
 ```python
-from motor.motor_asyncio import AsyncIOMotorClient
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'shop.apps.ShopConfig',
+]
 
-async def get_database():
-    client = AsyncIOMotorClient("mongodb://localhost:27017")
-    return client.myshop
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
+LOGIN_REDIRECT_URL = 'shop:product_list'
+LOGOUT_REDIRECT_URL = 'shop:product_list'
 ```
 
-#### 2. Модель товару (Pydantic)
+### 2. Розробка моделей даних
+
+#### 2.1. Створення моделей (models.py)
 ```python
-class ProductBase(MongoBaseModel):
-    name: str
-    description: str
-    price: float
-    stock: int
-    category: Optional[str] = None
-    image_url: Optional[str] = None
-    tags: List[str] = []
+class Category(models.Model):
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
+    description = models.TextField(blank=True)
+    image = models.ImageField(upload_to='categories/')
 
-class Product(ProductBase):
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    def get_absolute_url(self):
+        return reverse('shop:category_list', args=[self.slug])
+
+class Product(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.IntegerField()
+    available = models.BooleanField(default=True)
+    rating = models.FloatField(default=0)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def get_absolute_url(self):
+        return reverse('shop:product_detail', args=[self.id, self.slug])
 ```
 
-#### 3. CRUD операції
+### 3. Налаштування URL-маршрутизації
+
+#### 3.1. Головний urls.py
 ```python
-class CRUDProduct(CRUDBase[Product, ProductCreate, Product]):
-    async def search_products(
-        self,
-        db: AsyncIOMotorDatabase,
-        *,
-        query: str,
-        skip: int = 0,
-        limit: int = 20
-    ) -> List[Product]:
-        filter_query = {
-            "$or": [
-                {"name": {"$regex": query, "$options": "i"}},
-                {"description": {"$regex": query, "$options": "i"}},
-                {"category": {"$regex": query, "$options": "i"}}
-            ]
-        }
-        cursor = db[self.collection_name].find(filter_query).skip(skip).limit(limit)
-        results = await cursor.to_list(length=limit)
-        return [Product(**doc) for doc in results]
+from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
-    async def get_by_category(
-        self,
-        db: AsyncIOMotorDatabase,
-        *,
-        category: str,
-        skip: int = 0,
-        limit: int = 20
-    ) -> List[Product]:
-        filter_query = {"category": category}
-        return await self.get_multi(db, skip=skip, limit=limit, filter_query=filter_query)
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('shop.urls', namespace='shop')),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ```
 
-#### 4. Створення індексів
+#### 3.2. URLs додатку shop (shop/urls.py)
 ```python
-# В MongoDB shell:
-db.products.createIndex(
-    {
-        "name": "text",
-        "description": "text",
-        "category": "text"
-    }
-)
+from django.urls import path
+from . import views
+
+app_name = 'shop'
+
+urlpatterns = [
+    path('', views.product_list, name='product_list'),
+    path('category/<slug:category_slug>/', views.product_list, name='category_list'),
+    path('product/<int:id>/<slug:slug>/', views.product_detail, name='product_detail'),
+    path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
+    path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('accounts/register/', views.register, name='register'),
+]
 ```
 
-### Особливості реалізації в проекті
+### 4. Розробка представлень (views.py)
 
-#### Асинхронна робота з базою даних
-- Використання Motor (асинхронний драйвер MongoDB для Python)
-- Підтримка асинхронних операцій з FastAPI
-- Ефективна обробка паралельних запитів
-
-#### Оптимізація запитів
-1. **Індексування полів пошуку**:
-   - Створено індекси для полів name, description та category
-   - Покращено швидкість пошуку та фільтрації
-
-2. **Проекції**:
-   - Вибірка тільки необхідних полів при запитах
-   - Зменшення навантаження на мережу
-
-3. **Пагінація**:
-   - Реалізовано через skip та limit
-   - Оптимізоване завантаження великих наборів даних
-
-#### Схема бази даних
-```javascript
-{
-  "products": {
-    "_id": ObjectId,
-    "name": String,
-    "description": String,
-    "price": Number,
-    "stock": Number,
-    "category": String,
-    "image_url": String,
-    "tags": Array,
-    "created_at": Date,
-    "updated_at": Date
-  }
-}
+#### 4.1. Представлення для списку продуктів
+```python
+def product_list(request, category_slug=None):
+    category = None
+    categories = Category.objects.all()
+    products = Product.objects.filter(available=True)
+    
+    if category_slug:
+        category = get_object_or_404(Category, slug=category_slug)
+        products = products.filter(category=category)
+        
+    # Сортування
+    sort = request.GET.get('sort', '')
+    if sort == 'price-asc':
+        products = products.order_by('price')
+    elif sort == 'price-desc':
+        products = products.order_by('-price')
+    elif sort == 'rating':
+        products = products.order_by('-rating')
+        
+    return render(request, 'shop/product/list.html',
+                 {'category': category,
+                  'categories': categories,
+                  'products': products})
 ```
 
-### Переваги використання MongoDB в проекті
-1. **Швидкий пошук**:
-   - Повнотекстовий пошук по товарах
-   - Фільтрація за категоріями
-   - Ефективна пагінація результатів
+### 5. Розробка шаблонів
 
-2. **Гнучкість даних**:
-   - Можливість додавання нових полів без зміни схеми
-   - Підтримка різних типів даних
-   - Зберігання складних структур
+#### 5.1. Базовий шаблон (base.html)
+```html
+{% load static %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <!-- Навігаційне меню -->
+    </nav>
+    
+    <main class="container mt-4">
+        {% block content %}
+        {% endblock %}
+    </main>
+    
+    <footer class="footer mt-auto py-3 bg-dark">
+        <!-- Футер -->
+    </footer>
+</body>
+</html>
+```
 
-3. **Продуктивність**:
-   - Швидке читання та запис даних
-   - Ефективна робота з великими об'ємами даних
-   - Оптимізовані запити через індекси
+#### 5.2. Шаблон списку продуктів (list.html)
+```html
+{% extends "shop/base.html" %}
+{% load static %}
 
-4. **Масштабованість**:
-   - Можливість горизонтального масштабування
-   - Підтримка реплікації даних
-   - Шардинг для розподілу навантаження
+{% block content %}
+<div class="container">
+    <!-- Фільтри та сортування -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="dropdown me-3">
+                <button class="btn btn-outline-primary dropdown-toggle">
+                    Сортування
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="?sort=price-asc">Ціна: від низької до високої</a></li>
+                    <li><a class="dropdown-item" href="?sort=price-desc">Ціна: від високої до низької</a></li>
+                    <li><a class="dropdown-item" href="?sort=rating">За рейтингом</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
-## Висновки
-В результаті виконання лабораторної роботи було створено сучасний та зручний інтерфейс онлайн-магазину з розширеною функціональністю. Особлива увага була приділена користувацькому досвіду та естетичному вигляду. Реалізовані покращення значно підвищили зручність використання магазину як для користувачів, так і для адміністраторів.
+    <!-- Список товарів -->
+    <div class="row">
+        {% for product in products %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">{{ product.description|truncatewords:20 }}</p>
+                        <p class="card-text"><strong>Ціна: </strong>${{ product.price }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+```
 
-## Подальші можливі покращення
-1. Додавання фільтрації товарів за ціною
-2. Реалізація сортування товарів
-3. Додавання системи відгуків
-4. Реалізація розширеної системи категорій з підкатегоріями
-5. Додавання можливості завантаження зображень на сервер
+### 6. Наповнення бази даних
+
+#### 6.1. Створення команди для наповнення даними (management/commands/populate_db.py)
+```python
+from django.core.management.base import BaseCommand
+from shop.models import Category, Product
+from django.utils.text import slugify
+
+class Command(BaseCommand):
+    help = 'Populate database with sample data'
+
+    def handle(self, *args, **kwargs):
+        # Очищення існуючих даних
+        Category.objects.all().delete()
+        Product.objects.all().delete()
+
+        # Створення категорій
+        categories = [
+            'Ноутбуки',
+            'Смартфони',
+            'Планшети',
+            'Аксесуари',
+            'Гаджети'
+        ]
+
+        for category_name in categories:
+            category = Category.objects.create(
+                name=category_name,
+                slug=slugify(category_name)
+            )
+            
+            # Створення продуктів для кожної категорії
+            for i in range(10):
+                Product.objects.create(
+                    category=category,
+                    name=f'{category_name} {i+1}',
+                    slug=slugify(f'{category_name}-{i+1}'),
+                    price=round(random.uniform(100, 1000), 2),
+                    stock=random.randint(0, 100),
+                    rating=round(random.uniform(0, 5), 1)
+                )
+```
+
+## Результати роботи
+1. Створено повноцінний e-commerce веб-додаток на Django
+2. Реалізовано основні функції інтернет-магазину:
+   - Каталог товарів з категоріями
+   - Фільтрація та сортування товарів
+   - Система аутентифікації користувачів
+   - Адаптивний дизайн для різних пристроїв
+3. Розроблено зручний користувацький інтерфейс
+4. Реалізовано систему управління товарами через адмін-панель
+5. Створено скрипт для автоматичного наповнення бази даних тестовими даними
+
+## Висновок
+В ході виконання лабораторної роботи було створено функціональний веб-додаток інтернет-магазину з використанням Django. Проект демонструє практичне застосування MVT архітектури та сучасних підходів до веб-розробки. Особлива увага була приділена структуруванню коду, створенню зручного користувацького інтерфейсу та реалізації основних функцій e-commerce платформи.
+
+Набуті практичні навички:
+- Розробка веб-додатків на Django
+- Робота з системою шаблонів Django
+- Налаштування URL-маршрутизації
+- Створення моделей даних та міграцій
+- Інтеграція фронтенд-фреймворків
+- Реалізація користувацької аутентифікації
+- Робота з статичними файлами та медіа
+- Створення команд управління Django

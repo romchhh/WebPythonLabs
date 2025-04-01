@@ -1,0 +1,62 @@
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}Реєстрація{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h2 class="text-center mb-4">Реєстрація</h2>
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Ім'я користувача</label>
+                            <input type="text" name="username" class="form-control" id="username" required>
+                            <div class="invalid-feedback">
+                                Будь ласка, введіть ім'я користувача
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" id="email" required>
+                            <div class="invalid-feedback">
+                                Будь ласка, введіть коректну email адресу
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password1" class="form-label">Пароль</label>
+                            <input type="password" name="password1" class="form-control" id="password1" required>
+                            <div class="invalid-feedback">
+                                Будь ласка, введіть пароль
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password2" class="form-label">Підтвердження пароля</label>
+                            <input type="password" name="password2" class="form-control" id="password2" required>
+                            <div class="invalid-feedback">
+                                Паролі не співпадають
+                            </div>
+                        </div>
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary w-100">Зареєструватися</button>
+                    </form>
+                    <div class="text-center mt-3">
+                        <p>Вже маєте акаунт? <a href="{% url 'login' %}">Увійти</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

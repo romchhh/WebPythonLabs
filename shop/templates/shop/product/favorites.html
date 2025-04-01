@@ -1,0 +1,49 @@
+{% extends "shop/base.html" %}
+
+{% block title %}Обрані товари{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Обрані товари</h1>
+
+{% if products %}
+<div class="row">
+    {% for product in products %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text text-muted">${{ product.price }}</p>
+                <div class="text-warning mb-2">
+                    {% for i in "12345"|make_list %}
+                    {% if forloop.counter <= product.rating %}
+                    <i class="bi bi-star-fill"></i>
+                    {% else %}
+                    <i class="bi bi-star"></i>
+                    {% endif %}
+                    {% endfor %}
+                    <small class="text-muted">({{ product.num_reviews }})</small>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ product.get_absolute_url }}" class="btn btn-primary">Деталі</a>
+                    <form action="{% url 'shop:toggle_favorite' product.id %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="bi bi-heart-fill"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    <p>У вас поки немає обраних товарів.</p>
+    <a href="{% url 'shop:product_list' %}" class="btn btn-primary">Перейти до каталогу</a>
+</div>
+{% endif %}
+{% endblock %} 

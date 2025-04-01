@@ -1,0 +1,52 @@
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}Профіль користувача{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-circle display-1 text-primary mb-3"></i>
+                    <h3>{{ user.username }}</h3>
+                    <p class="text-muted">{{ user.email }}</p>
+                    <hr>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'shop:edit_profile' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Редагувати профіль
+                        </a>
+                        <a href="{% url 'shop:change_password' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-key"></i> Змінити пароль
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h4 class="mb-4">Останні замовлення</h4>
+                    {% if orders %}
+                        <div class="list-group">
+                        {% for order in orders %}
+                            <a href="{% url 'shop:order_detail' order.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">Замовлення #{{ order.id }}</h5>
+                                    <small>{{ order.created|date:"d.m.Y" }}</small>
+                                </div>
+                                <p class="mb-1">Сума: {{ order.total_cost }} грн</p>
+                                <small class="text-muted">Статус: {{ order.get_status_display }}</small>
+                            </a>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">У вас ще немає замовлень</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

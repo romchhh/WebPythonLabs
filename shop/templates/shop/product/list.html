@@ -1,0 +1,176 @@
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}
+    {% if category %}{{ category.name }}{% else %}Всі товари{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Фільтри та сортування -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                <div class="dropdown me-3">
+                    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Сортування
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="sortProducts('price-asc')">Ціна: від низької до високої</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="sortProducts('price-desc')">Ціна: від високої до низької</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="sortProducts('rating')">За рейтингом</a></li>
+                    </ul>
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary" onclick="changeView('grid')">
+                        <i class="bi bi-grid"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" onclick="changeView('list')">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <form id="searchForm" class="d-flex">
+                <input class="form-control me-2" type="search" placeholder="Пошук товарів..." value="{{ search_query }}">
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Хлібні крихти -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'shop:product_list' %}">Головна</a></li>
+            {% if category %}
+            <li class="breadcrumb-item active">{{ category.name }}</li>
+            {% else %}
+            <li class="breadcrumb-item active">Всі товари</li>
+            {% endif %}
+        </ol>
+    </nav>
+
+    <!-- Список товарів -->
+    <div class="row product-container">
+        {% for product in products %}
+        <div class="col-md-4 mb-4 fade-in" data-category="{{ product.category.slug }}" data-price="{{ product.price }}">
+            <div class="card product-card h-100">
+                {% if product.image %}
+                <div class="position-relative">
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                    {% if product.stock > 0 %}
+                    <span class="badge bg-success position-absolute top-0 end-0 m-2">В наявності</span>
+                    {% else %}
+                    <span class="badge bg-danger position-absolute top-0 end-0 m-2">Немає в наявності</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text text-muted">{{ product.description|truncatewords:20 }}</p>
+                    
+                    <!-- Рейтинг -->
+                    <div class="rating mb-2">
+                        {% for i in "12345"|make_list %}
+                        {% if forloop.counter <= product.rating %}
+                        <i class="bi bi-star-fill"></i>
+                        {% else %}
+                        <i class="bi bi-star"></i>
+                        {% endif %}
+                        {% endfor %}
+                        <small class="text-muted">({{ product.num_reviews }})</small>
+                    </div>
+                    
+                    <!-- Категорія -->
+                    <a href="{{ product.category.get_absolute_url }}" class="category-badge text-decoration-none mb-2 d-inline-block">
+                        {{ product.category.name }}
+                    </a>
+                    
+                    <!-- Ціна та кнопки -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="product-price">${{ product.price }}</span>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary" data-product-id="{{ product.id }}" data-bs-toggle="tooltip" title="Швидкий перегляд">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <a href="{{ product.get_absolute_url }}" class="btn btn-sm btn-primary">Деталі</a>
+                            {% if user.is_authenticated %}
+                            <button class="btn btn-sm btn-outline-danger" data-product-id="{{ product.id }}" data-bs-toggle="tooltip" title="Додати до обраного">
+                                <i class="bi bi-heart{% if product in user.favorite_products.all %}-fill{% endif %}"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                {% if search_query %}
+                <h4>На жаль, за вашим запитом "{{ search_query }}" нічого не знайдено.</h4>
+                <p>Спробуйте змінити параметри пошуку.</p>
+                {% else %}
+                <h4>Товари відсутні.</h4>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Модальне вікно швидкого перегляду -->
+<div class="modal fade" id="quickViewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Швидкий перегляд</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Контент буде завантажено через AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function changeView(type) {
+        const container = document.querySelector('.product-container');
+        const cards = document.querySelectorAll('.product-card');
+        
+        if (type === 'list') {
+            container.classList.remove('row');
+            cards.forEach(card => {
+                card.parentElement.classList.remove('col-md-4');
+                card.classList.add('flex-row');
+            });
+        } else {
+            container.classList.add('row');
+            cards.forEach(card => {
+                card.parentElement.classList.add('col-md-4');
+                card.classList.remove('flex-row');
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Обробник для швидкого перегляду
+        document.querySelectorAll('[data-product-id]').forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.dataset.productId;
+                if (this.classList.contains('btn-outline-primary')) {
+                    quickView(productId);
+                } else if (this.classList.contains('btn-outline-danger')) {
+                    toggleFavorite(productId);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 
