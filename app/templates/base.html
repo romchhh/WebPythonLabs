@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Інтернет-магазин{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="/">E-Commerce Shop</a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Головна</a></li>
+                <li><a href="/products">Продукти</a></li>
+                {% if user %}
+                    <li><a href="/cart">Кошик</a></li>
+                    <li><a href="/orders">Мої замовлення</a></li>
+                    {% if user.is_admin %}
+                        <li><a href="/admin/crm" class="admin-link">Панель управління</a></li>
+                    {% endif %}
+                    <li><a href="/logout">Вийти</a></li>
+                {% else %}
+                    <li><a href="/login">Увійти</a></li>
+                    <li><a href="/register">Реєстрація</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Інтернет-магазин. Всі права захищені.</p>
+    </footer>
+</body>
+</html>
