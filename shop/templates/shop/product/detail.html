@@ -50,7 +50,22 @@
                     <div class="alert alert-success" role="alert">
                         В наявності: {{ product.stock }} шт.
                     </div>
-                    <button class="btn btn-primary btn-lg">Додати до кошика</button>
+                    <form action="{% url 'shop:cart_add' product.id %}" method="post" class="mb-4">
+                        {% csrf_token %}
+                        <div class="row g-3 align-items-center">
+                            <div class="col-auto">
+                                <label for="quantity" class="col-form-label">Кількість:</label>
+                            </div>
+                            <div class="col-auto">
+                                <input type="number" id="quantity" name="quantity" class="form-control" value="1" min="1" max="{{ product.stock }}">
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-cart-plus"></i> Додати до кошика
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 {% else %}
                     <div class="alert alert-danger" role="alert">
                         Немає в наявності

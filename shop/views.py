@@ -2,8 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
-from .models import Category, Product, Review
-from .forms import ReviewForm
+from .models import Category, Product, Review, Cart, CartItem
+from .forms import ReviewForm, CartAddProductForm
 
 # Create your views here.
 
@@ -66,3 +66,74 @@ def toggle_favorite(request, product_id):
 def favorite_products(request):
     products = request.user.favorite_products.all()
     return render(request, 'shop/product/favorites.html', {'products': products})
+
+@login_required
+def cart_add(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    
+    if request.method == 'POST':
+        form = CartAddProductForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            quantity = cd['quantity']
+            
+            # Перевіряємо наявність товару
+            if product.stock < quantity:
+                messages.error(request, 'Недостатньо товару на складі')
+                return redirect('shop:product_detail', id=product.id, slug=product.slug)
+            
+            cart_item, created = CartItem.objects.get_or_create(
+                cart=cart,
+                product=product,
+                defaults={'quantity': quantity}
+            )
+            
+            if not created:
+                cart_item.quantity += quantity
+                cart_item.save()
+            
+            messages.success(request, 'Товар додано до кошика')
+            return redirect('shop:cart_detail')
+    return redirect('shop:product_detail', id=product.id, slug=product.slug)
+
+@login_required
+def cart_remove(request, product_id):
+    cart = get_object_or_404(Cart, user=request.user)
+    product = get_object_or_404(Product, id=product_id)
+    CartItem.objects.filter(cart=cart, product=product).delete()
+    messages.success(request, 'Товар видалено з кошика')
+    return redirect('shop:cart_detail')
+
+@login_required
+def cart_detail(request):
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    cart_items = cart.items.all()
+    total_price = cart.get_total_price()
+    return render(request, 'shop/cart/detail.html', {
+        'cart_items': cart_items,
+        'total_price': total_price
+    })
+
+@login_required
+def cart_update(request, product_id):
+    cart = get_object_or_404(Cart, user=request.user)
+    product = get_object_or_404(Product, id=product_id)
+    
+    if request.method == 'POST':
+        quantity = int(request.POST.get('quantity', 1))
+        
+        if quantity > product.stock:
+            messages.error(request, 'Недостатньо товару на складі')
+            return redirect('shop:cart_detail')
+            
+        cart_item = get_object_or_404(CartItem, cart=cart, product=product)
+        if quantity > 0:
+            cart_item.quantity = quantity
+            cart_item.save()
+            messages.success(request, 'Кількість товару оновлено')
+        else:
+            cart_item.delete()
+            messages.success(request, 'Товар видалено з кошика')
+            
+    return redirect('shop:cart_detail')
